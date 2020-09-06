@@ -1,3 +1,4 @@
+import 'package:PhoneScanner/NewImage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,16 +13,56 @@ class Sfc extends StatefulWidget {
 }
 
 class _SfcState extends State<Sfc> {
+  static GlobalKey<AnimatedListState> animatedListKey = GlobalKey<AnimatedListState>();
   List<File> imgFile = List<File>();
   List<dynamic> img = [];
   List<File> _files = [];
   final pdf = pw.Document();
+  bool _visible = false;
+  int i = 0;
+
+
+  void _toggle(int i){
+    setState(() {
+       this.i = i;
+      _visible = !_visible;
+    });
+  }
+
+  void delItem(){
+    setState(() {
+      _files.removeAt(i);
+    });
+  }
+
+  void navToShow(){
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => NewImage(_files[i], animatedListKey)))
+    ;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Camera"),
         centerTitle: true,
+        actions: <Widget>[
+          Visibility(
+            visible: _visible,
+            child: IconButton(
+              onPressed: (){navToShow();},
+              icon: Icon(Icons.edit),
+            ),
+          ),
+          Visibility(
+            visible: _visible,
+            child: IconButton(
+              onPressed: (){delItem();},
+              icon: Icon(Icons.delete),
+            ),
+          ),
+        ],
       ),
       body: Stack(
         children: <Widget>[
@@ -30,12 +71,19 @@ class _SfcState extends State<Sfc> {
             child: new GridView.builder(
               itemCount: _files.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3,mainAxisSpacing: 10,crossAxisSpacing: 10,
-
               ),
               itemBuilder: (context, index) {
-                return displaySelectedFile(_files[index]);
+                return new Card(
+                    child: new InkResponse(
+                    child: Image.file(_files[index]),
+                    onTap: (){
+                      _toggle(index);
+                    },
+                    ),
+                );
               },
             ),
+
           ),
           Expanded(
             flex: 1,
@@ -54,6 +102,16 @@ class _SfcState extends State<Sfc> {
                         build: (pw.Context context) {
                           return pw.Center(child: pw.Image(image));
                         }));
+                  }
+                  try{
+                    print("creating folder");
+                    final tempDir = await getExternalStorageDirectory();
+                    final myImagePath = '${tempDir.parent.parent.parent.parent.path}/Phone Scanner' ;
+                    final myImgDir = await new Directory(myImagePath).create();
+                    final output = File(path.join(myImgDir.path, '${DateTime.now().toString().replaceAll(" ","_")}.pdf'));
+                    await output.writeAsBytes(pdf.save());
+                  }catch(Exception){
+
                   }
                 },
                 color: Colors.grey[800],
@@ -94,7 +152,9 @@ class _SfcState extends State<Sfc> {
         height: 500.0,
         width: 500.0,
         child: Image.file(file),
+
       ),
+
     );
   }
 }
