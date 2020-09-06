@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 import 'package:provider/provider.dart';
 
+import 'NewImage.dart';
 import 'Providers/documentProvider.dart';
 
 
@@ -51,6 +52,28 @@ class _SfgState extends State<Sfg> {
   List<File> imgFile = List<File>();
   List<dynamic> img = [];
   final pdf = pw.Document();
+  int i=0;
+  bool _visible = false;
+  static GlobalKey<AnimatedListState> animatedListKey = GlobalKey<AnimatedListState>();
+
+  void _toggle(int i){
+    setState(() {
+      this.i = i;
+      _visible = !_visible;
+    });
+  }
+
+  void delItem(){
+    setState(() {
+      images.removeAt(i);
+    });
+  }
+
+  void navToShow(){
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => NewImage(imgFile[i], animatedListKey)))
+    ;
+  }
 
   Future<void> loadAssets() async {
     List<Asset> resultList = List<Asset>();
@@ -100,7 +123,22 @@ class _SfgState extends State<Sfg> {
         title: Text("Phone Scanner"),
         centerTitle: true,
         backgroundColor: Colors.grey[600],
-
+        actions: <Widget>[
+          Visibility(
+            visible: _visible,
+            child: IconButton(
+              onPressed: (){navToShow();},
+              icon: Icon(Icons.edit),
+            ),
+          ),
+          Visibility(
+            visible: _visible,
+            child: IconButton(
+              onPressed: (){delItem();},
+              icon: Icon(Icons.delete),
+            ),
+          ),
+        ],
       ),
 
       body: Column(
@@ -152,10 +190,16 @@ class _SfgState extends State<Sfg> {
                   :GridView.count(crossAxisCount: 3,mainAxisSpacing: 10,crossAxisSpacing: 10,
                 children: List.generate(images.length, (index){
                   Asset asset = images[index];
-                  return AssetThumb(
-                      asset: asset,
-                      width: 300,
-                      height: 300);
+                  return new Card(
+                    child: new InkResponse(
+                      child: AssetThumb(
+                          asset: asset,
+                          width: 300,
+                          height: 300
+                      ),
+                      onTap: (){_toggle(index);},
+                    ),
+                  );
                 }),
               ) ,
             ),
@@ -179,8 +223,11 @@ class _SfgState extends State<Sfg> {
                         ));
                   }
                   try{
+                    print("creating folder");
                     final tempDir = await getExternalStorageDirectory();
-                    final output = File(path.join(tempDir.path, '${DateTime.now().toString().replaceAll(" ","_")}.pdf'));
+                    final myImagePath = '${tempDir.parent.parent.parent.parent.path}/Phone Scanner' ;
+                    final myImgDir = await new Directory(myImagePath).create();
+                    final output = File(path.join(myImgDir.path, '${DateTime.now().toString().replaceAll(" ","_")}.pdf'));
                     await output.writeAsBytes(pdf.save());
                   }catch(Exception){
 
