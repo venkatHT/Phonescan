@@ -174,31 +174,7 @@ class _ShowImageState extends State<ShowImage> {
                             Navigator.of(context).pop();
                           },
                         ),
-                        FlatButton(
-                          child: Text(
-                            "Save as PDF",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            await widget.file
-                                .writeAsBytes(bytes)
-                                .then((_) async {
-                              print(ImageSizGetter.getSize(widget.file));
-                              Provider.of<DocumentProvider>(context,
-                                      listen: false)
-                                  .saveDocument(
-                                      name: nameController.text,
-                                      documentPath: widget.file.path,
-                                      dateTime: DateTime.now(),
-                                      animatedListKey: widget.animatedListKey,
-                                      angle: angle);
-                            });
-                          },
-                        )
+
                       ],
                     ),
                     Container(
