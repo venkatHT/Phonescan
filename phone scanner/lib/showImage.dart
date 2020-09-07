@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:PhoneScanner/Sfc.dart';
+import 'package:PhoneScanner/sfg.dart';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 
 import 'package:flutter/material.dart';
@@ -18,16 +20,22 @@ class ShowImage extends StatefulWidget {
   double height;
   Offset tl, tr, bl, br;
   GlobalKey<AnimatedListState> animatedListKey;
+  int i;
   ShowImage(
-      {this.file,
-      this.bl,
-      this.br,
-      this.tl,
-      this.height,
-      this.tr,
-      this.imagePixelSize,
-      this.width,
-      this.animatedListKey});
+      {this.i,
+        this.file,
+        this.bl,
+        this.br,
+        this.tl,
+        this.height,
+        this.tr,
+        this.imagePixelSize,
+        this.width,
+        this.animatedListKey});
+
+  int geti(){
+    return i;
+  }
   @override
   _ShowImageState createState() => _ShowImageState();
 }
@@ -101,27 +109,27 @@ class _ShowImageState extends State<ShowImage> {
       builder: (context) => AlertDialog(
         content: Container(
             child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Text(
-              "Discard this Scan?",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Divider(
-              thickness: 2,
-            ),
-            Text(
-              "This will discard the scans you have captured. Are you sure?",
-              style: TextStyle(color: Colors.grey[500]),
-            )
-          ],
-        )),
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  "Discard this Scan?",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Divider(
+                  thickness: 2,
+                ),
+                Text(
+                  "This will discard the scans you have captured. Are you sure?",
+                  style: TextStyle(color: Colors.grey[500]),
+                )
+              ],
+            )),
         actions: <Widget>[
           OutlineButton(
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -132,7 +140,7 @@ class _ShowImageState extends State<ShowImage> {
           ),
           OutlineButton(
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context);
@@ -174,7 +182,18 @@ class _ShowImageState extends State<ShowImage> {
                             Navigator.of(context).pop();
                           },
                         ),
-
+                        FlatButton(
+                          child: Text(
+                            "Save",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () async {
+                            Navigator.of(context).pop();
+                          },
+                        )
                       ],
                     ),
                     Container(
@@ -196,26 +215,26 @@ class _ShowImageState extends State<ShowImage> {
               bytes == null
                   ? Container()
                   : isRotating
-                      ? Center(
+                  ? Center(
+                  child: Container(
+                      height: 150,
+                      width: 100,
+                      child: Center(
                           child: Container(
-                              height: 150,
-                              width: 100,
-                              child: Center(
-                                  child: Container(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.black),
-                                ),
-                              ))))
-                      : Center(
-                          child: Container(
-                              padding: EdgeInsets.all(10),
-                              constraints:
-                                  BoxConstraints(maxHeight: 300, maxWidth: 250),
-                              child: Image.memory(bytes))),
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                              AlwaysStoppedAnimation(Colors.black),
+                            ),
+                          ))))
+                  : Center(
+                  child: Container(
+                      padding: EdgeInsets.all(10),
+                      constraints:
+                      BoxConstraints(maxHeight: 300, maxWidth: 250),
+                      child: Image.memory(bytes))),
             ],
           ),
         ),
@@ -347,26 +366,26 @@ class _ShowImageState extends State<ShowImage> {
                     width: 80,
                     margin: EdgeInsets.all(10),
                     decoration:
-                        BoxDecoration(border: Border.all(color: Colors.grey)),
+                    BoxDecoration(border: Border.all(color: Colors.grey)),
                     child: isOriginalBytes
                         ? Image.memory(
-                            originalBytes,
-                            fit: BoxFit.fill,
-                            height: 120,
-                          )
+                      originalBytes,
+                      fit: BoxFit.fill,
+                      height: 120,
+                    )
                         : Container(
-                            height: 120,
-                            child: Center(
-                              child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation(Colors.black),
-                                  )),
-                            ),
-                          )),
+                      height: 120,
+                      child: Center(
+                        child: Container(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                              AlwaysStoppedAnimation(Colors.black),
+                            )),
+                      ),
+                    )),
                 Text("Original"),
               ],
             ),
@@ -391,26 +410,26 @@ class _ShowImageState extends State<ShowImage> {
                   width: 80,
                   margin: EdgeInsets.all(10),
                   decoration:
-                      BoxDecoration(border: Border.all(color: Colors.grey)),
+                  BoxDecoration(border: Border.all(color: Colors.grey)),
                   child: isWhiteBoardBytes
                       ? Image.memory(
-                          whiteboardBytes,
-                          fit: BoxFit.fill,
-                          height: 120,
-                        )
+                    whiteboardBytes,
+                    fit: BoxFit.fill,
+                    height: 120,
+                  )
                       : Container(
-                          height: 120,
-                          child: Center(
-                            child: Container(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.black),
-                                )),
-                          ),
-                        ),
+                    height: 120,
+                    child: Center(
+                      child: Container(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                            AlwaysStoppedAnimation(Colors.black),
+                          )),
+                    ),
+                  ),
                 ),
                 Text("Whiteboard"),
               ],
@@ -436,26 +455,26 @@ class _ShowImageState extends State<ShowImage> {
                   width: 80,
                   margin: EdgeInsets.all(10),
                   decoration:
-                      BoxDecoration(border: Border.all(color: Colors.grey)),
+                  BoxDecoration(border: Border.all(color: Colors.grey)),
                   child: isGrayBytes
                       ? Image.memory(
-                          grayBytes,
-                          fit: BoxFit.fill,
-                          height: 120,
-                        )
+                    grayBytes,
+                    fit: BoxFit.fill,
+                    height: 120,
+                  )
                       : Container(
-                          height: 120,
-                          child: Center(
-                            child: Container(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.black),
-                                )),
-                          ),
-                        ),
+                    height: 120,
+                    child: Center(
+                      child: Container(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                            AlwaysStoppedAnimation(Colors.black),
+                          )),
+                    ),
+                  ),
                 ),
                 Text("Grayscale"),
               ],
