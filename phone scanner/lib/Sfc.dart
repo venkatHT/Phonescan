@@ -1,4 +1,3 @@
-import 'package:PhoneScanner/NewImage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -7,20 +6,46 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path/path.dart' as path;
 
+import 'image_editor_.dart';
+
+
 class Sfc extends StatefulWidget {
+  File filedit;
+  Sfc({this.filedit});
+
+
   @override
   _SfcState createState() => _SfcState();
 }
 
 class _SfcState extends State<Sfc> {
   static GlobalKey<AnimatedListState> animatedListKey = GlobalKey<AnimatedListState>();
-  List<File> imgFile = List<File>();
   List<dynamic> img = [];
   List<File> _files = [];
   final pdf = pw.Document();
   bool _visible = false;
   int i = 0;
 
+  File _image;
+  Future<void> getimageditor() {
+    final geteditimage =
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ImageEditorPro(
+        appBarColor: Colors.grey[800],
+        bottomBarColor: Colors.grey[700],
+        imagefile: _files[i],
+      );
+    })).then((geteditimage) {
+      if (geteditimage != null) {
+        setState(() {
+          _image = geteditimage;
+          _files[i] = _image;
+        });
+      }
+    }).catchError((er) {
+      print(er);
+    });
+  }
 
   void _toggle(int i){
     setState(() {
@@ -35,10 +60,10 @@ class _SfcState extends State<Sfc> {
     });
   }
 
-  void navToShow(){
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => NewImage(_files[i], animatedListKey)))
-    ;
+  void setItem(){
+    setState(() {
+      _files[i] = widget.filedit;
+    });
   }
 
   @override
@@ -51,7 +76,7 @@ class _SfcState extends State<Sfc> {
           Visibility(
             visible: _visible,
             child: IconButton(
-              onPressed: (){navToShow();},
+              onPressed: (){getimageditor();},
               icon: Icon(Icons.edit),
             ),
           ),
@@ -64,44 +89,69 @@ class _SfcState extends State<Sfc> {
           ),
         ],
       ),
-      body: Stack(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: new GridView.builder(
-              itemCount: _files.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3,mainAxisSpacing: 10,crossAxisSpacing: 10,
-              ),
-              itemBuilder: (context, index) {
-                return new Card(
-                    child: new InkResponse(
-                    child: Image.file(_files[index]),
-                    onTap: (){
-                      _toggle(index);
-                    },
-                    ),
-                );
-              },
-            ),
 
+          Expanded(
+            flex: 9,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: new GridView.builder(
+                itemCount: _files.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3,mainAxisSpacing: 10,crossAxisSpacing: 10,
+                ),
+                itemBuilder: (context, index) {
+                  return new Card(
+                      child: new InkResponse(
+                      child: Image.file(_files[index]),
+                      onTap: (){
+                        _toggle(index);
+                      },
+                      ),
+                  );
+                },
+              ),
+
+            ),
           ),
           Expanded(
             flex: 1,
             child: Container(
               child: FlatButton.icon(
                 onPressed: () async{
-                  for (var i = 0; i < _files.length; i++) {
-                    // added this
-                    var image = PdfImage.file(
+                  for(int i=0;i<_files.length;i++){
+                    img.add(PdfImage.file(
                       pdf.document,
-                      bytes: File(_files[i].path).readAsBytesSync(),
-                    );
+                      bytes: _files[i].readAsBytesSync(),));
+                    pdf.addPage(
+                        pw.Page(
+                            build: (pw.Context context){
+                              return pw.Column(
 
-                    pdf.addPage(pw.Page(
-                        pageFormat: PdfPageFormat.a4,
-                        build: (pw.Context context) {
-                          return pw.Center(child: pw.Image(image));
-                        }));
+                                children: <pw.Widget>[
+                                  pw.Expanded(
+                                    flex: 21,
+                                    child: pw.Container(
+                                      child: pw.Center(
+                                        child: pw.Image(img[i]),
+                                      ),
+                                    ),
+                                  ),
+                                  pw.Expanded(
+                                    flex: 1,
+                                    child: pw.Container(
+                                      child: pw.Text(
+                                        "PHONE SCANNER",
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              );
+
+                            }
+                        ));
                   }
                   try{
                     print("creating folder");
