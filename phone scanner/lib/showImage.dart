@@ -1,16 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:PhoneScanner/Sfc.dart';
-import 'package:PhoneScanner/sfg.dart';
+import 'package:screenshot/screenshot.dart';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_size_getter/image_size_getter.dart';
-import 'package:provider/provider.dart';
+import 'package:path_provider/path_provider.dart';
 
-import 'Providers/documentProvider.dart';
 import 'cropImage.dart';
 
 class ShowImage extends StatefulWidget {
@@ -45,6 +42,7 @@ class _ShowImageState extends State<ShowImage> {
   final _focusNode = FocusNode();
   MethodChannel channel = new MethodChannel('opencv');
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  ScreenshotController screenshotController = ScreenshotController();
   int index = 0;
   bool isBottomOpened = false;
   PersistentBottomSheetController controller;
@@ -182,18 +180,33 @@ class _ShowImageState extends State<ShowImage> {
                             Navigator.of(context).pop();
                           },
                         ),
-                        FlatButton(
-                          child: Text(
-                            "Save",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                          },
-                        )
+                        new FlatButton(
+                            child: new Text("Done"),
+                            textColor: Colors.white,
+                            onPressed: () {
+                              File _imageFile;
+                              _imageFile = null;
+                              screenshotController
+                                  .capture(
+                                  delay: Duration(milliseconds: 500), pixelRatio: 1.5)
+                                  .then((File image) async {
+                                //print("Capture Done");
+                                setState(() {
+                                  _imageFile = image;
+                                });
+                                final paths = await getExternalStorageDirectory();
+                                image.copy(paths.path +
+                                    '/' +
+                                    DateTime
+                                        .now()
+                                        .millisecondsSinceEpoch
+                                        .toString() +
+                                    '.png');
+                                Navigator.pop(context, image);
+                              }).catchError((onError) {
+                                print(onError);
+                              });
+                            }),
                       ],
                     ),
                     Container(
