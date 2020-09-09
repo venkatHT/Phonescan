@@ -9,18 +9,15 @@ import 'package:pdf/pdf.dart';
 
 import 'package:pdf/widgets.dart' as pw ;
 
-import 'package:pdf/widgets.dart' as pw ;
 import 'package:path/path.dart' as path;
 
 import 'package:flutter/services.dart';
-import 'package:image_size_getter/image_size_getter.dart';
-import 'package:provider/provider.dart';
 
-import 'NewImage.dart';
-import 'Providers/documentProvider.dart';
+import 'image_editor_.dart';
 
 
 class Sfg extends StatefulWidget {
+  File filedit;
   File file;
   var imagePixelSize;
   double width;
@@ -28,13 +25,14 @@ class Sfg extends StatefulWidget {
   Offset tl, tr, bl, br;
   GlobalKey<AnimatedListState> animatedListKey;
 
+  Sfg({this.filedit});
+
   @override
   _SfgState createState() => _SfgState();
 }
 
 class _SfgState extends State<Sfg> {
   TextEditingController nameController = TextEditingController();
-  final _focusNode = FocusNode();
   MethodChannel channel = new MethodChannel('opencv');
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   int index = 0;
@@ -56,6 +54,31 @@ class _SfgState extends State<Sfg> {
   bool _visible = false;
   static GlobalKey<AnimatedListState> animatedListKey = GlobalKey<AnimatedListState>();
 
+  File _image;
+  Future<void> getimageditor() {
+    final geteditimage =
+    Navigator.push(context, MaterialPageRoute(builder: (context) {
+      return ImageEditorPro(
+        appBarColor: Colors.grey[800],
+        bottomBarColor: Colors.grey[700],
+        imagefile: imgFile[i],
+      );
+    })
+    ).then((geteditimage) {
+      print("loading image");
+      if (geteditimage != null) {
+        setState(() {
+          _image = geteditimage;
+          imgFile[i] =  _image;
+        });
+      }else{
+        print("null");
+      }
+    }).catchError((er) {
+      print(er);
+    });
+  }
+
   void _toggle(int i){
     setState(() {
       this.i = i;
@@ -66,14 +89,12 @@ class _SfgState extends State<Sfg> {
   void delItem(){
     setState(() {
       images.removeAt(i);
+      imgFile.removeAt(i);
     });
   }
 
-  void navToShow(){
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => NewImage(imgFile[i], animatedListKey)))
-    ;
-  }
+
+
 
   Future<void> loadAssets() async {
     List<Asset> resultList = List<Asset>();
@@ -127,7 +148,7 @@ class _SfgState extends State<Sfg> {
           Visibility(
             visible: _visible,
             child: IconButton(
-              onPressed: (){navToShow();},
+              onPressed: (){getimageditor();},
               icon: Icon(Icons.edit),
             ),
           ),
@@ -188,15 +209,11 @@ class _SfgState extends State<Sfg> {
               ),
               )
                   :GridView.count(crossAxisCount: 3,mainAxisSpacing: 10,crossAxisSpacing: 10,
-                children: List.generate(images.length, (index){
-                  Asset asset = images[index];
+                children: List.generate(imgFile.length, (index){
+                  File file = imgFile[index];
                   return new Card(
                     child: new InkResponse(
-                      child: AssetThumb(
-                          asset: asset,
-                          width: 300,
-                          height: 300
-                      ),
+                      child: Image.file(file),
                       onTap: (){_toggle(index);},
                     ),
                   );
@@ -216,9 +233,29 @@ class _SfgState extends State<Sfg> {
                     pdf.addPage(
                         pw.Page(
                             build: (pw.Context context){
-                              return pw.Center(
-                                child: pw.Image(img[i]),
+                              return pw.Column(
+
+                                children: <pw.Widget>[
+                                  pw.Expanded(
+                                    flex: 21,
+                                    child: pw.Container(
+                                      child: pw.Center(
+                                        child: pw.Image(img[i]),
+                                      ),
+                                    ),
+                                  ),
+                                  pw.Expanded(
+                                    flex: 1,
+                                    child: pw.Container(
+                                      child: pw.Text(
+                                          "PHONE SCANNER",
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
                               );
+
                             }
                         ));
                   }
